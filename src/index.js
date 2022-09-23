@@ -56,11 +56,11 @@ server.post('/poll',async (req,res)=>{
     
     res.send({title:poll.title,
       expireAt:expire_at}).sendStatus(201);
-    return;
 
   } catch (error) {
     res.sendStatus(500);
   }
+  // return;
 });
 
 server.get('/poll',async (req,res)=>{
