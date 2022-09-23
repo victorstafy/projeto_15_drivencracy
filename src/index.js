@@ -36,40 +36,39 @@ server.post('/poll',async (req,res)=>{
   });
 
   try {
-
+    console.log('0')
     if (validation.error) {
       res.status(422).send(validation.error.details);
       return;
     }
-
+    console.log('1')
     if (poll.expireAt.length===0){
       expire_at=dayjs().add(30,'day').format('YYYY/MM/DD HH:mm');
     } 
     else{
       expire_at=poll.expireAt.slice();
     }
-
+    console.log('2')
     const response = await db.collection("poll").insertOne({
       title:poll.title,
       expireAt: expire_at,      
     })
-    
-    res.send({title:poll.title,
+    console.log('3')
+    return res.send({title:poll.title,
       expireAt:expire_at}).sendStatus(201);
-    return;
 
   } catch (error) {
-    res.sendStatus(500);
+    return res.send(error).sendStatus(500);
   }
 });
 
 server.get('/poll',async (req,res)=>{
   try{
       const poll_list= await db.collection("poll").find().toArray();
-      res.send(poll_list);
+      return res.send(poll_list);
   }
   catch{
-      res.sendStatus(500);
+    return res.sendStatus(500);
   } 
 })
 
