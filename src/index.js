@@ -24,32 +24,38 @@ mongoClient.connect(()=>{
 const pollSchema = joi
   .object({
     title: joi.string().empty("").required(),
-    expireAt: joi.string(),
+    expireAt: joi.string().empty(""),
   });
 
 
 server.post('/poll',async (req,res)=>{
   const poll=req.body;
+  let expire_at;
   const validation = pollSchema.validate(req.body, {
       abortEarly: false,
   });
 
   try {
+
     if (validation.error) {
       res.status(422).send(validation.error.details);
       return;
     }
 
     if (poll.expireAt.length===0){
-      expireAt=dayjs().add(30,'day').format('YYYY/MM/DD HH:mm')
+      expire_at=dayjs().add(30,'day').format('YYYY/MM/DD HH:mm');
+    } 
+    else{
+      expire_at=poll.expireAt.slice();
     }
-    
-    await db.collection("poll").insertOne({
+
+    const response = await db.collection("poll").insertOne({
       title:poll.title,
-      expireAt: expireAt
+      expireAt: expire_at,      
     })
-      
-  res.send(poll).sendStatus(201);
+    
+    res.send({title:poll.title,
+      expireAt:expire_at}).sendStatus(201);
 
   } catch (error) {
     res.sendStatus(500);
@@ -66,3 +72,4 @@ server.get('/poll',async (req,res)=>{
   } 
 })
 
+server.listen(5000,function(){console.log('port 5000')});
