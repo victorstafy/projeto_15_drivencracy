@@ -45,7 +45,7 @@ server.post('/poll',async (req,res)=>{
         title:poll.title,
         expireAt: dayjs().add(30,'day').format('YYYY/MM/DD HH:mm'),      
       })
-      res.send({title:poll.title,
+      res.status(201).send({title:poll.title,
         expireAt:dayjs().add(30,'day').format('YYYY/MM/DD HH:mm')}).status(201);
       return;
     } 
@@ -61,6 +61,7 @@ server.post('/poll',async (req,res)=>{
 
   } catch (error) {
     res.send(error).status(500);
+    return;
   }
 });
 
@@ -68,9 +69,11 @@ server.get('/poll',async (req,res)=>{
   try{
       const poll_list= await db.collection("poll").find().toArray();
       res.send(poll_list);
+      return;
   }
   catch{
       res.status(404).send('nenhuma pesquisa encontrada');
+      return;
   } 
 })
 
