@@ -30,46 +30,49 @@ const pollSchema = joi
 
 server.post('/poll',async (req,res)=>{
   const poll=req.body;
-  let expire_at;
+  // let expire_at;
   const validation = pollSchema.validate(req.body, {
       abortEarly: false,
   });
 
   try {
-    console.log('0')
+
     if (validation.error) {
       res.status(422).send(validation.error.details);
       return;
     }
-    console.log('1')
+
     if (poll.expireAt.length===0){
-      expire_at=dayjs().add(30,'day').format('YYYY/MM/DD HH:mm');
+      await db.collection("poll").insertOne({
+        title:poll.title,
+        expireAt: dayjs().add(30,'day').format('YYYY/MM/DD HH:mm'),      
+      })
+      res.send({title:poll.title,
+        expireAt:dayjs().add(30,'day').format('YYYY/MM/DD HH:mm')}).status(201);
     } 
     else{
-      expire_at=poll.expireAt.slice();
+      await db.collection("poll").insertOne({
+        title:poll.title,
+        expireAt: poll.expireAt.slice(),      
+      })
+      res.send({title:poll.title,
+        expireAt:poll.expireAt.slice()}).status(201);
     }
-    console.log('2')
-    const response = await db.collection("poll").insertOne({
-      title:poll.title,
-      expireAt: expire_at,      
-    })
-    console.log('3')
-    return res.send({title:poll.title,
-      expireAt:expire_at}).sendStatus(201);
 
   } catch (error) {
-    return res.send(error).sendStatus(500);
+    res.sendStatus(500);
   }
 });
 
 server.get('/poll',async (req,res)=>{
   try{
       const poll_list= await db.collection("poll").find().toArray();
-      return res.send(poll_list);
+      res.send(poll_list);
   }
   catch{
-    return res.sendStatus(500);
+      res.sendStatus(500);
   } 
 })
 
-server.listen(process.env.PORT,function(){console.log('port '+process.env.PORT)});
+server.listen(5000,function(){console.log('port '+5000)});
+// process.env.PORT
