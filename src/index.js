@@ -35,7 +35,7 @@ server.post('/poll',async (req,res)=>{
   });
 
   try {
-    console.log('0')
+
     if (validation.error) {
       res.status(422).send(validation.error.details);
       return;
