@@ -52,11 +52,11 @@ server.post('/poll',async (req,res)=>{
       title:poll.title,
       expireAt: expire_at,      
       })
-    res.send({title:poll.title,
-      expireAt:expire_at}).status(201);
+    res.status(201).send({title:poll.title,
+      expireAt:expire_at});
 
   } catch (error) {
-    res.send(error).status(500);
+    res.status(500).send(error);
   }
 });
 
