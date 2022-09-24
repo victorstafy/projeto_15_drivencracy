@@ -27,6 +27,12 @@ const pollSchema = joi
     expireAt: joi.string().empty(""),
   });
 
+const choiceSchema = joi
+  .object({
+    title: joi.string().empty("").required(),
+    pollId: joi.string().required(),
+  });
+
 
 server.post('/poll',async (req,res)=>{
   const poll=req.body;
@@ -66,6 +72,65 @@ server.get('/poll',async (req,res)=>{
   }
   catch{
     return res.status(404).send('nenhuma pesquisa encontrada');
+  } 
+})
+
+server.post('/choice',async (req,res)=>{
+  const choice=req.body;
+  const today = dayjs(new Date());
+
+  const validation = choiceSchema.validate(req.body, {
+      abortEarly: false,
+  });
+
+  try {
+
+    if (validation.error) {
+      return res.status(422).send(validation.error.details);
+    }
+
+    const poll=await db.collection("poll").findOne({_id:choice.pollId});
+    const previos_title=await db.collection("choice").findOne({title:choice.title});
+
+    if (!poll){
+      res.sendStatus(404);
+      return;
+    }
+    if (!previos_title){
+      res.sendStatus(409);
+      return;
+    }
+    if (poll.expireAt.isBefore(today)){
+      res.sendStatus(403);
+      return;
+    }
+
+    await db.collection("choice").insertOne({
+      title: choice.title, pollId: choice.pollId, 
+    })
+
+    return res.status(201).send(choice.pollId);
+
+  } catch (error) {
+    return res.status(500).send(error);
+  }
+});
+
+server.get('/poll/:id/choice',async (req,res)=>{
+  const _id= req.params;
+  try{
+      const choice_list= await db.collection("choice").find().toArray();
+      if (!choice_list){
+        res.sendStatus(404);
+        return;
+      }
+      else{
+        res.send(choice_list);
+        return;
+      }
+  }
+  catch{
+    return res.status(500);
   } 
 })
 
