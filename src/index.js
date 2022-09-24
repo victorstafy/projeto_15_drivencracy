@@ -38,8 +38,7 @@ server.post('/poll',async (req,res)=>{
   try {
 
     if (validation.error) {
-      res.status(422).send(validation.error.details);
-      return;
+      return res.status(422).send(validation.error.details);
     }
     if (poll.expireAt.length===0){
       expire_at=dayjs().add(30,'day').format('YYYY/MM/DD HH:mm');
@@ -52,21 +51,21 @@ server.post('/poll',async (req,res)=>{
       title:poll.title,
       expireAt: expire_at,      
       })
-    res.status(201).send({title:poll.title,
+    return res.status(201).send({title:poll.title,
       expireAt:expire_at});
 
   } catch (error) {
-    res.status(500).send(error);
+    return res.status(500).send(error);
   }
 });
 
 server.get('/poll',async (req,res)=>{
   try{
       const poll_list= await db.collection("poll").find().toArray();
-      res.send(poll_list);
+      return res.send(poll_list);
   }
   catch{
-      res.status(404).send('nenhuma pesquisa encontrada');
+    return res.status(404).send('nenhuma pesquisa encontrada');
   } 
 })
 
