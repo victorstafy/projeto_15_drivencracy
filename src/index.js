@@ -40,13 +40,11 @@ server.post('/poll',async (req,res)=>{
       res.status(422).send(validation.error.details);
       return;
     }
-    console.log(poll)
     if (poll.expireAt.length===0){console.log('2')
       await db.collection("poll").insertOne({
         title:poll.title,
         expireAt: dayjs().add(30,'day').format('YYYY/MM/DD HH:mm'),      
       })
-      console.log('3')
       res.status(201).send({title:poll.title,
         expireAt:dayjs().add(30,'day').format('YYYY/MM/DD HH:mm')}).status(201);
       return;
@@ -56,7 +54,6 @@ server.post('/poll',async (req,res)=>{
         title:poll.title,
         expireAt: poll.expireAt,      
       })
-      console.log('55')
       res.send({title:poll.title,
       expireAt:poll.expireAt.slice()}).status(201);
       return;
@@ -77,5 +74,5 @@ server.get('/poll',async (req,res)=>{
   } 
 })
 
-server.listen(5000,function(){console.log('port '+'5000')});
+server.listen(process.env.PORT,function(){console.log('port '+process.env.PORT)});
 // process.env.PORT
