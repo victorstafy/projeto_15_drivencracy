@@ -154,8 +154,7 @@ server.post('/choice/:id/vote',async (req,res)=>{
       return;
     }
     await db.collection("vote").insertOne({
-      choiceId: choice._id, choiceTitle:choice.title, pollId: choice.pollId, vote: 1, 
-      date:dayjs().format('YYYY/MM/DD HH:mm')
+      choiceId: choice._id, createdAt:dayjs().format('YYYY/MM/DD HH:mm')
     })
     return res.status(201).send('Voto computado com sucesso!');
 
@@ -204,5 +203,5 @@ server.get('/poll/:id/result',async (req,res)=>{
   } 
 })
 
-server.listen(process.env.PORT,function(){console.log('port '+process.env.PORT)});
+server.listen(5000,function(){console.log('port '+'5000')});
 // process.env.PORT
