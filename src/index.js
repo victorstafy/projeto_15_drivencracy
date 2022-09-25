@@ -18,7 +18,7 @@ console.log(process.env.MONGO_URI)
 const mongoClient= new MongoClient(process.env.MONGO_URI);
 let db;
 mongoClient.connect(()=>{
-    db=mongoClient.db('drivencracy')
+    db=mongoClient.db('Cluster0')
 })
 
 const pollSchema = joi
