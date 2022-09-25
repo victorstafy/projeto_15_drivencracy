@@ -121,7 +121,7 @@ server.get('/poll/:id/choice',async (req,res)=>{
   
   try{
       const choice_list= await db.collection("choice").find({pollId: _id.id.slice(1)}).toArray();
-      if (!choice_list){
+      if (choice_list.length===0){
         res.sendStatus(404);
         return;
       }
@@ -137,7 +137,6 @@ server.get('/poll/:id/choice',async (req,res)=>{
 
 server.post('/choice/:id/vote',async (req,res)=>{
   const choiceId= req.params;
-  const today = dayjs(new Date());
 
   try {
 //
@@ -147,19 +146,17 @@ server.post('/choice/:id/vote',async (req,res)=>{
       res.sendStatus(404);
       return;
     }
-    console.log(choice.pollId)
+
     const poll=await db.collection("poll").findOne({_id:new ObjectId(choice.pollId)});
     if (dayjs().isAfter(dayjs(poll.expireAt))){
       res.sendStatus(403);
       return;
     }
-    console.log('aqui')
     await db.collection("vote").insertOne({
-      choiceId: choiceId, choiceTitle:choice.title, pollId: choice.pollId, vote: 1, 
+      choiceId: choice._id, choiceTitle:choice.title, pollId: choice.pollId, vote: 1, 
       date:dayjs().format('YYYY/MM/DD HH:mm')
     })
-    console.log('aqui msm')
-    return res.status(201);
+    return res.status(201).send('Voto computado com sucesso!');
 
   } catch (error) {
     console.log(error)
@@ -169,23 +166,29 @@ server.post('/choice/:id/vote',async (req,res)=>{
 
 server.get('/poll/:id/result',async (req,res)=>{
   const pollId= req.params;
+  let vote_list=[];
+  let vote_per_choice;
 
+  console.log(pollId.id.slice(1))
   try{
-    const poll=await db.collection("poll").findOne({_id:pollId});
-    
+    const poll=await db.collection("poll").findOne({_id: ObjectId(pollId.id.slice(1))});
+    console.log(poll)
     if (!poll){
       res.sendStatus(404);
       return;
     }
 
-    const choice_list= await db.collection("choice").find({ pollId: { $eq: pollId } }).toArray();
+    const choice_list= await db.collection("choice").find({pollId: pollId.id.slice(1)}).toArray();
     const id_choice_list=choice_list.map(choice=>choice._id);
-    const votes_list=await id_choice_list.map(id_choice=>db.collection("vote").find({choiceId: { $eq: id_choice }}).toArray())
-    const votes_count=await votes_list.map(vote_list_per_choice=>vote_list_per_choice.length);
-    const votes_choice_title=await votes_list.map(vote_obj_list=>vote_obj_list[0].choiceTitle);
-    const max_votes=Math.max(...votes_count)
+    for (let i=0;i<id_choice_list.length;i++) {
+      vote_per_choice= await db.collection("vote").find({choiceId: ObjectId(id_choice_list[i]) }).toArray();
+      console.log(vote_per_choice)
+      vote_list.push(vote_per_choice)
+    }
+    const votes_count=vote_list.map(vote_list_per_choice=>vote_list_per_choice.length);
+    const max_votes=Math.max(...votes_count);
     const max_votes_index=votes_count.indexOf(max_votes);
-    const chosen_choice= votes_list[max_votes_index].choiceTitle;
+    const chosen_choice= choice_list[max_votes_index].title;
 
     const new_poll_obj={...poll};
     new_poll_obj.result={
@@ -195,7 +198,7 @@ server.get('/poll/:id/result',async (req,res)=>{
     return res.send(new_poll_obj);
 
   }
-  catch{
+  catch (error) {
     return res.status(500);
   } 
 })
