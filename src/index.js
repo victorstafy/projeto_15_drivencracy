@@ -69,7 +69,8 @@ server.get('/poll',async (req,res)=>{
       const poll_list= await db.collection("poll").find().toArray();
       return res.send(poll_list);
   }
-  catch{
+  catch (error){
+    console.log(error)
     return res.status(404).send('nenhuma pesquisa encontrada');
   } 
 })
