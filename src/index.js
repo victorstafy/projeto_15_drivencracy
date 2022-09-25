@@ -203,5 +203,5 @@ server.get('/poll/:id/result',async (req,res)=>{
   } 
 })
 
-server.listen(5000,function(){console.log('port '+'5000')});
+server.listen(process.env.PORT,function(){console.log('port '+process.env.PORT)});
 // process.env.PORT
