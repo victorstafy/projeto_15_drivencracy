@@ -2,8 +2,7 @@ import express, { application } from "express";
 import cors from "cors";
 import { MongoClient } from "mongodb";
 import dotenv from "dotenv";
-import bcrypt from "bcrypt";
-import { v4 as uuid } from "uuid";
+import { ObjectId } from "mongodb";
 import dayjs from "dayjs";
 import joi from "joi";
 
@@ -88,28 +87,29 @@ server.post('/choice',async (req,res)=>{
     if (validation.error) {
       return res.status(422).send(validation.error.details);
     }
-
-    const poll=await db.collection("poll").findOne({_id:choice.pollId});
+    console.log(choice.pollId)
+    const poll=await db.collection("poll").findOne({ _id: new ObjectId(choice.pollId) });
     const previos_title=await db.collection("choice").findOne({title:choice.title});
 
     if (!poll){
       res.sendStatus(404);
       return;
     }
-    if (!previos_title){
+    if (previos_title){
       res.sendStatus(409);
       return;
     }
-    if (poll.expireAt.isBefore(today)){
+
+    if (dayjs().isAfter(dayjs(poll.expireAt))){
       res.sendStatus(403);
       return;
     }
 
-    choice_obj=await db.collection("choice").insertOne({
+    const choice_obj=await db.collection("choice").insertOne({
       title: choice.title, pollId: choice.pollId, 
     })
 
-    return res.status(201).send(choice_obj);
+    return res.status(201).send({ _id: choice_obj.insertedId,title:choice.title,pollId: choice.pollId});
 
   } catch (error) {
     return res.status(500).send(error);
@@ -118,8 +118,9 @@ server.post('/choice',async (req,res)=>{
 
 server.get('/poll/:id/choice',async (req,res)=>{
   const _id= req.params;
+  
   try{
-      const choice_list= await db.collection("choice").find({ pollId: { $eq: _id } }).toArray();
+      const choice_list= await db.collection("choice").find({pollId: _id.id.slice(1)}).toArray();
       if (!choice_list){
         res.sendStatus(404);
         return;
@@ -134,32 +135,34 @@ server.get('/poll/:id/choice',async (req,res)=>{
   } 
 })
 
-server.post('/choice:id/vote',async (req,res)=>{
+server.post('/choice/:id/vote',async (req,res)=>{
   const choiceId= req.params;
   const today = dayjs(new Date());
 
   try {
 //
-    const choice=await db.collection("choice").findOne({_id:choiceId});
-    const poll=await db.collection("poll").findOne({_id:choice.pollId});
-
+    const choice=await db.collection("choice").findOne({_id:new ObjectId(choiceId.id.slice(1))});
+    
     if (!choice){
       res.sendStatus(404);
       return;
     }
-    if (poll.expireAt.isBefore(today)){
+    console.log(choice.pollId)
+    const poll=await db.collection("poll").findOne({_id:new ObjectId(choice.pollId)});
+    if (dayjs().isAfter(dayjs(poll.expireAt))){
       res.sendStatus(403);
       return;
     }
-
+    console.log('aqui')
     await db.collection("vote").insertOne({
       choiceId: choiceId, choiceTitle:choice.title, pollId: choice.pollId, vote: 1, 
       date:dayjs().format('YYYY/MM/DD HH:mm')
     })
-//
+    console.log('aqui msm')
     return res.status(201);
 
   } catch (error) {
+    console.log(error)
     return res.status(500).send(error);
   }
 });
