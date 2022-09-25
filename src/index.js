@@ -14,6 +14,7 @@ server.use(express.json());
 server.use(cors());
 
 // calling mongo
+console.log(process.env.MONGO_URI)
 const mongoClient= new MongoClient(process.env.MONGO_URI);
 let db;
 mongoClient.connect(()=>{
@@ -203,5 +204,5 @@ server.get('/poll/:id/result',async (req,res)=>{
   } 
 })
 
-server.listen(5000,function(){console.log('port '+'5000')});
+server.listen(process.env.PORT,function(){console.log('port '+process.env.PORT)});
 // process.env.PORT
