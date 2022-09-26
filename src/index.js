@@ -73,7 +73,7 @@ server.get('/poll',async (req,res)=>{
   }
   catch (error){
     console.log(error)
-    return res.status(404).send('nenhuma pesquisa encontrada');
+    return res.status(404).send(error);
   } 
 })
 
