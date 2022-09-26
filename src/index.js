@@ -61,6 +61,7 @@ server.post('/poll',async (req,res)=>{
       expireAt:expire_at});
 
   } catch (error) {
+    console.log(error)
     return res.status(500).send(error);
   }
 });
